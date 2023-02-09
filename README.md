@@ -7,6 +7,8 @@
 
 [>>> English <<<](./README_EN.md)
 
+## 在 plusls 回归前，项目将在此仓库维护。
+
 Make Minecraft Client Great Again!
 
 默认使用 O+C 打开设置界面

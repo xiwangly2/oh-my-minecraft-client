@@ -1,5 +1,7 @@
 # Oh My Minecraft Client
 
+## The project will be maintained in this repository until plusls back.
+
 Make Minecraft Client Great Again!
 
 ## Description
