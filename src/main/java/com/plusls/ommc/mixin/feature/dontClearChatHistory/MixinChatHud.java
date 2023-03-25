@@ -38,7 +38,11 @@ public class MixinChatHud {
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/util/List;size()I",
-                    ordinal = 0
+                    //#if MC > 11802
+                    ordinal = 1
+                    //#else
+                    //$$ ordinal = 0
+                    //#endif
             )
     )
     //#if MC > 11802
