@@ -50,7 +50,11 @@ public class WorldEaterMineHelperUtil {
                 if (y < yMax) {
                     int j = 0;
                     for (int i = y + 1; i <= yMax; ++i) {
+                        //#if MC > 11904
+                        //$$ if (world.getBlockState(new BlockPos(x, i, z)).isSolid() && j < 20) {
+                        //#else
                         if (world.getBlockState(new BlockPos(x, i, z)).getMaterial().isSolidBlocking() && j < 20) {
+                        //#endif
                             return false;
                         }
                         ++j;
