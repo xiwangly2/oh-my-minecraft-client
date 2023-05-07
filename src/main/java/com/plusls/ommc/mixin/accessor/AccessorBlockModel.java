@@ -10,7 +10,7 @@ public interface AccessorBlockModel {
     @Accessor
     BlockModel getParent();
 
-    @Accessor()
+    @Accessor
     //#if MC > 11903
     Boolean getHasAmbientOcclusion();
     //#else
