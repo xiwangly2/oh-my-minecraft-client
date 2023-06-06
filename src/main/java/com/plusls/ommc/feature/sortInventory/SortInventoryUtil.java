@@ -5,6 +5,7 @@ import com.plusls.ommc.config.Configs;
 import com.plusls.ommc.mixin.accessor.AccessorAbstractContainerScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Tuple;
@@ -85,7 +86,8 @@ public class SortInventoryUtil {
 
     public static boolean sort() {
         Minecraft client = Minecraft.getInstance();
-        if (!(client.screen instanceof AbstractContainerScreen<?>)) {
+        if (!(client.screen instanceof AbstractContainerScreen<?>) ||
+                client.screen instanceof CreativeModeInventoryScreen) {
             return false;
         }
         AbstractContainerScreen<?> handledScreen = (AbstractContainerScreen<?>) client.screen;
