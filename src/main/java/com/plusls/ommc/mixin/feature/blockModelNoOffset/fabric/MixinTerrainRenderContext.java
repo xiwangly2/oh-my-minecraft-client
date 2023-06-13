@@ -61,8 +61,8 @@ public abstract class MixinTerrainRenderContext implements RenderContext {
             //#if MC > 11404
             matrixStack.translate(-offsetPos.x, -offsetPos.y, -offsetPos.z);
             //#else
-            // will cause crash, i don't know why
-            ////$$ GlStateManager.translated(-offsetPos.x, -offsetPos.y, -offsetPos.z);
+            //$$ // will cause crash, i don't know why
+            //$$ ////$$ GlStateManager.translated(-offsetPos.x, -offsetPos.y, -offsetPos.z);
             //#endif
         }
     }
