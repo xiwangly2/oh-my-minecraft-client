@@ -30,7 +30,7 @@ public class MixinClientPlayerInteractionManager {
                                               //#endif
                                               InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         //#if MC > 11802
-        ClientLevel world = (ClientLevel) player.getLevel();
+        ClientLevel world = (ClientLevel) player.level();
         //#endif
         if (!Configs.preventIntentionalGameDesign) {
             return;

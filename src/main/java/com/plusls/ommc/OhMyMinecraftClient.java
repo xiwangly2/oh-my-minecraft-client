@@ -22,9 +22,9 @@ public class OhMyMinecraftClient implements ClientModInitializer {
             @Dependency(value = "frex", versionPredicate = ">=6.0.242", optional = true),
             @Dependency(value = "sodium", versionPredicate = ">=0.4.1", optional = true),
             //#elseif MC > 11605
-            @Dependency(value = "sodium", versionPredicate = ">=0.3.4", optional = true),
+            //$$ @Dependency(value = "sodium", versionPredicate = ">=0.3.4", optional = true),
             //#elseif MC > 11502
-            @Dependency(value = "sodium", versionPredicate = ">=0.2.0", optional = true),
+            //$$ @Dependency(value = "sodium", versionPredicate = ">=0.2.0", optional = true),
             //#endif
     })
     @Override
