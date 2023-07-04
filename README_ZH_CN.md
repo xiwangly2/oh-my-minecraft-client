@@ -17,8 +17,6 @@
 
 ❗在报告问题前，请务必尝试最新[测试版](https://github.com/plusls/oh-my-minecraft-client/actions)，检查问题是否依然存在。
 
-♻注意: Minecraft 1.20 需要使用第三方的 [Malilib](https://github.com/Nyan-Work/malilib/releases/tag/1.20)。
-
 # 依赖
 | 依赖         | 下载                                                                                                                                                                                 |
 |------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -313,7 +311,7 @@ We have also provided some optional resource packs for this purpose.
 
 ### 支持
 
-当前主开发版本：1.20
+当前主开发版本：1.20.1
 
 并且使用 `预处理` 来兼容各版本。
 
@@ -327,7 +325,7 @@ We have also provided some optional resource packs for this purpose.
 - Minecraft 1.19.2
 - Minecraft 1.19.3
 - Minecraft 1.19.4
-- Minecraft 1.20
+- Minecraft 1.20.1
 
 ### 混淆映射表
 

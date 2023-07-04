@@ -32,11 +32,6 @@ repositories {
         }
     }
 
-    maven {
-        name("Nyan Maven")
-        url("https://maven.hendrixshen.top")
-    }
-
     mavenCentral()
 }
 
@@ -50,19 +45,20 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:${project.lombok_version}")
 
     // Dependency
-    modImplementation("top.hendrixshen:magiclib-${project.minecraft_version.replace(".", "_")}:${project.magiclib_version}") {
-        exclude(group: "curse.maven", module: "carpet-349239")
+    modImplementation("top.hendrixshen.magiclib:magiclib-${project.minecraft_version.replace(".", "_")}:${project.magiclib_version}") {
+        exclude(group: "carpet", module: "fabric-carpet")
     }
 
     // Misc
     runtimeOnly(project(path: ":fabricWrapper"))
 }
 
-archivesBaseName("${project.mod_archives_base_name}-${project.minecraft_version}")
 group(project.mod_maven_group)
-sourceCompatibility(JavaVersion.VERSION_1_8)
-targetCompatibility(JavaVersion.VERSION_1_8)
 version(project.parent.version)
+
+base {
+    archivesBaseName("${project.mod_archives_base_name}-${project.minecraft_version}")
+}
 
 loom {
     interfaceInjection {
@@ -191,6 +187,8 @@ blossom {
 }
 
 java {
+    sourceCompatibility(JavaVersion.VERSION_1_8)
+    targetCompatibility(JavaVersion.VERSION_1_8)
     withSourcesJar()
 }
 
