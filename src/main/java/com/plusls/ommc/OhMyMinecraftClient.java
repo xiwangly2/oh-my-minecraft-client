@@ -18,7 +18,11 @@ public class OhMyMinecraftClient implements ClientModInitializer {
     @Dependencies(and = {
             //#if MC > 11701
             @Dependency(value = "canvas", versionPredicate = ">=1.0.2308", optional = true),
-            @Dependency(value = "fabric", versionPredicate = ">=0.75.0", optional = true),
+            //#if MC > 11903
+            @Dependency(value = "fabric", versionPredicate = ">=0.84.0", optional = true),
+            //#else
+            //$$ @Dependency(value = "fabric", versionPredicate = ">=0.75.0", optional = true),
+            //#endif
             @Dependency(value = "frex", versionPredicate = ">=6.0.242", optional = true),
             @Dependency(value = "sodium", versionPredicate = ">=0.4.1", optional = true),
             //#elseif MC > 11605

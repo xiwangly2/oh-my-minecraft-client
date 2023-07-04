@@ -19,8 +19,6 @@ The default hotkey to open the in-game config GUI is **O + C**.
 
 ❗Before reporting a problem, be sure to try the latest [beta version](https://github.com/Nyan-Work/oh-my-minecraft-client/releases) to check if the problem still exists.
 
-♻️Note: Minecraft 1.20 requires the use of a third-party port [Malilib](https://github.com/Nyan-Work/malilib/releases/tag/1.20).
-
 # Dependencies
 | Dependency | Download                                                                                                                                                                           |
 |------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -315,7 +313,7 @@ Integrated server enable pvp.
 
 ### Support
 
-Current main development for Minecraft version: 1.20
+Current main development for Minecraft version: 1.20.1
 
 And use `preprocess` to be compatible with all versions.
 
@@ -329,7 +327,7 @@ And use `preprocess` to be compatible with all versions.
 - Minecraft 1.19.2
 - Minecraft 1.19.3
 - Minecraft 1.19.4
-- Minecraft 1.20
+- Minecraft 1.20.1
 
 ### Mappings
 

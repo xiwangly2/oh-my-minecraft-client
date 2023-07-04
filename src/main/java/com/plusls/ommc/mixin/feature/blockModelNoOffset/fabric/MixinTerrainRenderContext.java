@@ -2,7 +2,6 @@ package com.plusls.ommc.mixin.feature.blockModelNoOffset.fabric;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.plusls.ommc.feature.blockModelNoOffset.BlockModelNoOffsetUtil;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.impl.client.indigo.renderer.render.TerrainRenderContext;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
@@ -10,11 +9,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Dynamic;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+
+//#if MC > 11903
+import net.fabricmc.fabric.impl.client.indigo.renderer.render.AbstractBlockRenderContext;
+//#else
+//$$ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+//$$ import org.spongepowered.asm.mixin.Final;
+//$$ import org.spongepowered.asm.mixin.Shadow;
+//#endif
 
 //#if MC > 11802
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -33,14 +38,18 @@ import net.fabricmc.fabric.impl.client.indigo.renderer.render.BlockRenderInfo;
 //#endif
 
 @Mixin(value = TerrainRenderContext.class, remap = false)
-public abstract class MixinTerrainRenderContext implements RenderContext {
-    @Final
-    @Shadow
-    //#if MC > 11701
-    private BlockRenderInfo blockInfo;
-    //#else
-    //$$ private TerrainBlockRenderInfo blockInfo;
-    //#endif
+//#if MC > 11903
+public abstract class MixinTerrainRenderContext extends AbstractBlockRenderContext {
+//#else
+//$$ public abstract class MixinTerrainRenderContext implements RenderContext {
+//$$     @Shadow
+//$$     @Final
+//#if MC > 11701
+//$$     private BlockRenderInfo blockInfo;
+//#else
+//$$     private TerrainBlockRenderInfo blockInfo;
+//#endif
+//#endif
 
     @Dynamic
     @Inject(method = {
