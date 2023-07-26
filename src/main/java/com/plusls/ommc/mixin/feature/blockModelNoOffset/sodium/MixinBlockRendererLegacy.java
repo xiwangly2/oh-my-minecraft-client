@@ -13,15 +13,15 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependencies;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependency;
 
-
-@Dependencies(and = @Dependency(value = "sodium", versionPredicate = "<0.0.0"))
+@Dependencies(and = @Dependency(value = "sodium", versionPredicate = "<0.4.9>"))
 @Pseudo
-@Mixin(targets = "me.jellysquid.mods.sodium.render.renderer.TerrainRenderContext", remap = false)
-public class MixinTerrainRenderContext {
+@Mixin(targets = "me.jellysquid.mods.sodium.client.render.pipeline.BlockRenderer", remap = false)
+public class MixinBlockRendererLegacy {
     @Dynamic
-    @Redirect(method = "renderBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getOffset(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;",
-            ordinal = 0,
-            remap = true))
+    @Redirect(method = "renderModel",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/state/BlockState;getOffset(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;",
+                    ordinal = 0, remap = true))
     private Vec3 blockModelNoOffset(BlockState blockState, BlockGetter world, BlockPos pos) {
         return BlockModelNoOffsetUtil.blockModelNoOffset(blockState, world, pos);
     }

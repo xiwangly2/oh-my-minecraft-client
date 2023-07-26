@@ -51,5 +51,8 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+    "feature.blockModelNoOffset.sodium.MixinBlockRendererLegacy"
+  ]
 }

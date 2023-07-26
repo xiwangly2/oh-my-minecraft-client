@@ -24,7 +24,7 @@ import net.minecraft.util.RandomSource;
 //#endif
 
 // TODO
-@Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">=0.5"))
+@Dependencies(and = @Dependency(value = "sodium", versionPredicate = "<0.0.0"))
 @Pseudo
 @Mixin(targets = "me.jellysquid.mods.sodium.render.renderer.TerrainRenderContext", remap = false)
 public class MixinTerrainRenderContext {

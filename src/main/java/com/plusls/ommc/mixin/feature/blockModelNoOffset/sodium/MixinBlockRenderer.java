@@ -1,6 +1,7 @@
 package com.plusls.ommc.mixin.feature.blockModelNoOffset.sodium;
 
 import com.plusls.ommc.feature.blockModelNoOffset.BlockModelNoOffsetUtil;
+import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,11 +14,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependencies;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependency;
 
-@Dependencies(and = @Dependency(value = "sodium", versionPredicate = "<0.5"))
-@Pseudo
-@Mixin(targets = "me.jellysquid.mods.sodium.client.render.pipeline.BlockRenderer", remap = false)
+@Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">0.4.8"))
+@Mixin(value = BlockRenderer.class, remap = false)
 public class MixinBlockRenderer {
-    @Dynamic
     @Redirect(method = "renderModel",
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/level/block/state/BlockState;getOffset(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;",
