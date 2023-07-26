@@ -46,6 +46,7 @@
     "feature.worldEaterMineHelper.fabric.MixinTerrainRenderContext",
     "feature.worldEaterMineHelper.optifine.MixinBlockRenderManager",
     "feature.worldEaterMineHelper.sodium.MixinBlockRenderer",
+    "feature.worldEaterMineHelper.sodium.MixinBlockRendererLegacy",
     "feature.worldEaterMineHelper.sodium.MixinTerrainRenderContext"
   ],
   "injectors": {

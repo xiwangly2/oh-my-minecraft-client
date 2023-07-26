@@ -15,6 +15,11 @@ repositories {
     mavenLocal()
 
     maven {
+        name("JitPack")
+        url("https://www.jitpack.io")
+    }
+
+    maven {
         name("CurseForge Maven")
         url("https://www.cursemaven.com")
 
@@ -47,6 +52,12 @@ dependencies {
     // Dependency
     modImplementation("top.hendrixshen.magiclib:magiclib-${project.minecraft_version.replace(".", "_")}:${project.magiclib_version}") {
         exclude(group: "carpet", module: "fabric-carpet")
+    }
+
+    if (mcVersion > 11902) {
+        modImplementation("com.github.CaffeineMC:sodium-fabric:${project.sodium_version}") {
+            transitive(false)
+        }
     }
 
     // Misc
