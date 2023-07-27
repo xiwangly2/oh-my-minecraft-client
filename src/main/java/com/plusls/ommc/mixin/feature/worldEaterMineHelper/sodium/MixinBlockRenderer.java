@@ -57,9 +57,10 @@ public abstract class MixinBlockRenderer {
 
             if (customModel != null) {
                 this.ommc$renderTag.set(true);
-                int originalLightEmission = ctx.state().getLightEmission();
+                // This impl will break light system, so disable it.
+                // int originalLightEmission = ctx.state().getLightEmission();
                 BakedModel originalModel = ctx.model();
-                ((AccessorBlockStateBase) ctx.state()).setLightEmission(15);
+                // ((AccessorBlockStateBase) ctx.state()).setLightEmission(15);
                 ((AccessorBlockRenderContext) ctx).setModel(customModel);
                 //#if MC > 11904 || MC < 11904
                 this.renderModel(ctx, buffers);
@@ -67,7 +68,7 @@ public abstract class MixinBlockRenderer {
                 //$$ this.renderModel(ctx, buffers, bounds);
                 //#endif
                 ((AccessorBlockRenderContext) ctx).setModel(originalModel);
-                ((AccessorBlockStateBase) ctx.state()).setLightEmission(originalLightEmission);
+                // ((AccessorBlockStateBase) ctx.state()).setLightEmission(originalLightEmission);
                 this.ommc$renderTag.set(false);
             }
         }
