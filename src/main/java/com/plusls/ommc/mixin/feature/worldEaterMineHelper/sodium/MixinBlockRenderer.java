@@ -1,89 +1,76 @@
 package com.plusls.ommc.mixin.feature.worldEaterMineHelper.sodium;
 
-import com.plusls.ommc.feature.worldEaterMineHelper.BlockModelRendererContext;
 import com.plusls.ommc.feature.worldEaterMineHelper.WorldEaterMineHelperUtil;
+import com.plusls.ommc.mixin.accessor.AccessorBlockRenderContext;
 import com.plusls.ommc.mixin.accessor.AccessorBlockStateBase;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderContext;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependencies;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependency;
 
+//#if MC == 11904
+//$$ import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
+//$$ import me.jellysquid.mods.sodium.client.render.chunk.data.ChunkRenderBounds;
+//$$ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//#endif
+
 @Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">0.4.8"))
 @Mixin(value = BlockRenderer.class, remap = false)
-public class MixinBlockRenderer {
-    private final ThreadLocal<BlockModelRendererContext> ommcRenderContext = ThreadLocal.withInitial(BlockModelRendererContext::new);
-    private final ThreadLocal<Integer> ommcOriginalLuminance = ThreadLocal.withInitial(() -> -1);
+public abstract class MixinBlockRenderer {
+    @Shadow(remap = false)
+    //#if MC > 11904 || MC < 11904
+    public abstract boolean renderModel(BlockRenderContext ctx, ChunkModelBuilder buffers);
+    //#else
+    //$$ public abstract void renderModel(BlockRenderContext ctx, ChunkBuildBuffers buffers, ChunkRenderBounds.Builder bounds);
+    //#endif
+
+    @Unique
+    private final ThreadLocal<Boolean> ommc$renderTag = ThreadLocal.withInitial(() -> false);
 
     @Inject(
             method = "renderModel",
             at = @At(
-                    value = "HEAD"
+                    value = "RETURN"
             )
     )
-    private void initRenderContext(BlockRenderContext ctx, ChunkModelBuilder buffers, CallbackInfoReturnable<Boolean> cir) {
-        BlockModelRendererContext context = ommcRenderContext.get();
-        context.pos = ctx.pos();
-        context.state = ctx.state();
-    }
+    private void postRenderModel(
+            @NotNull BlockRenderContext ctx,
+            //#if MC > 11904 || MC < 11904
+            ChunkModelBuilder buffers,
+            CallbackInfoReturnable<Boolean> cir
+            //#else
+            //$$ ChunkBuildBuffers buffers,
+            //$$ ChunkRenderBounds.Builder bounds,
+            //$$ CallbackInfo ci
+            //#endif
+    ) {
+        if (WorldEaterMineHelperUtil.shouldUseCustomModel(ctx.state(), ctx.pos()) && !this.ommc$renderTag.get()) {
+            BakedModel customModel = WorldEaterMineHelperUtil.customModels.get(ctx.state().getBlock());
 
-    @ModifyArg(
-            method = "renderModel",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderer;getLightingMode(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/client/resources/model/BakedModel;)Lme/jellysquid/mods/sodium/client/model/light/LightMode;"
-
-            )
-    )
-    private BakedModel modifyBakedModel(BakedModel bakedModel) {
-        BakedModel ret = this.ommc$cGetCustomModel();
-
-        return ret == null ? bakedModel : ret;
-    }
-
-    @Inject(method = "renderModel", at = @At(value = "RETURN"))
-    private void postRenderModel(BlockRenderContext ctx, ChunkModelBuilder buffers, CallbackInfoReturnable<Boolean> cir) {
-        int originalLuminance = ommcOriginalLuminance.get();
-        if (originalLuminance != -1) {
-            ((AccessorBlockStateBase) ctx.state()).setLightEmission(originalLuminance);
-            ommcOriginalLuminance.set(-1);
-        }
-    }
-
-    @Redirect(
-            method = "getGeometry",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/pipeline/BlockRenderContext;model()Lnet/minecraft/client/resources/model/BakedModel;"
-            )
-    )
-    private BakedModel postGetGeometry(@NotNull BlockRenderContext context) {
-        BakedModel ret = this.ommc$cGetCustomModel();
-
-        return ret == null ? context.model() : ret;
-    }
-
-    @Unique
-    private @Nullable BakedModel ommc$cGetCustomModel() {
-        BlockModelRendererContext context = ommcRenderContext.get();
-
-        if (WorldEaterMineHelperUtil.shouldUseCustomModel(context.state, context.pos)) {
-            BakedModel bakedModel = WorldEaterMineHelperUtil.customFullModels.get(context.state.getBlock());
-
-            if (bakedModel != null) {
-                ommcOriginalLuminance.set(((AccessorBlockStateBase) context.state).getLightEmission());
-                ((AccessorBlockStateBase) context.state).setLightEmission(15);
-                return bakedModel;
+            if (customModel != null) {
+                this.ommc$renderTag.set(true);
+                // This impl will break light system, so disable it.
+                // int originalLightEmission = ctx.state().getLightEmission();
+                BakedModel originalModel = ctx.model();
+                // ((AccessorBlockStateBase) ctx.state()).setLightEmission(15);
+                ((AccessorBlockRenderContext) ctx).setModel(customModel);
+                //#if MC > 11904 || MC < 11904
+                this.renderModel(ctx, buffers);
+                //#else
+                //$$ this.renderModel(ctx, buffers, bounds);
+                //#endif
+                ((AccessorBlockRenderContext) ctx).setModel(originalModel);
+                // ((AccessorBlockStateBase) ctx.state()).setLightEmission(originalLightEmission);
+                this.ommc$renderTag.set(false);
             }
         }
-
-        return null;
     }
 }

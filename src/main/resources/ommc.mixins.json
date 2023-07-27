@@ -7,6 +7,7 @@
   "client": [
     "accessor.AccessorAbstractContainerScreen",
     "accessor.AccessorBlockModel",
+    "accessor.AccessorBlockRenderContext",
     "accessor.AccessorBlockStateBase",
     "accessor.AccessorHelpCommand",
     "accessor.AccessorTextComponent",
@@ -22,6 +23,7 @@
     "feature.blockModelNoOffset.fabric.MixinTerrainRenderContext",
     "feature.blockModelNoOffset.optifine.MixinBlockModelRenderer",
     "feature.blockModelNoOffset.sodium.MixinBlockRenderer",
+    "feature.blockModelNoOffset.sodium.MixinBlockRendererLegacy",
     "feature.blockModelNoOffset.sodium.MixinTerrainRenderContext",
     "feature.disableBlocklistCheck.MixinSocialInteractionsManager",
     "feature.disableBreakBlock.MixinClientPlayerInteractionManager",
@@ -51,8 +53,5 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-    "feature.blockModelNoOffset.sodium.MixinBlockRendererLegacy"
-  ]
+  }
 }
