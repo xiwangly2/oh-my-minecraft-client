@@ -22,7 +22,8 @@
     "feature.betterSneaking.MixinPlayerEntity",
     "feature.blockModelNoOffset.fabric.MixinTerrainRenderContext",
     "feature.blockModelNoOffset.optifine.MixinBlockModelRenderer",
-    "feature.blockModelNoOffset.sodium.MixinBlockRenderer",
+    "feature.blockModelNoOffset.sodium.MixinBlockRenderer_0_4_9",
+    "feature.blockModelNoOffset.sodium.MixinBlockRenderer_0_5",
     "feature.blockModelNoOffset.sodium.MixinBlockRendererLegacy",
     "feature.blockModelNoOffset.sodium.MixinTerrainRenderContext",
     "feature.disableBlocklistCheck.MixinSocialInteractionsManager",
@@ -47,7 +48,8 @@
     "feature.worldEaterMineHelper.fabric.MixinBlockRenderContext",
     "feature.worldEaterMineHelper.fabric.MixinTerrainRenderContext",
     "feature.worldEaterMineHelper.optifine.MixinBlockRenderManager",
-    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer",
+    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_4_9",
+    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_5"
     "feature.worldEaterMineHelper.sodium.MixinBlockRendererLegacy",
     "feature.worldEaterMineHelper.sodium.MixinTerrainRenderContext"
   ],

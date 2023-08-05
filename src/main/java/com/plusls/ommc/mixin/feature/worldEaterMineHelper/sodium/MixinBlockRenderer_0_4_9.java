@@ -2,15 +2,12 @@ package com.plusls.ommc.mixin.feature.worldEaterMineHelper.sodium;
 
 import com.plusls.ommc.feature.worldEaterMineHelper.WorldEaterMineHelperUtil;
 import com.plusls.ommc.mixin.accessor.AccessorBlockRenderContext;
-import com.plusls.ommc.mixin.accessor.AccessorBlockStateBase;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderContext;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependencies;
@@ -22,9 +19,10 @@ import top.hendrixshen.magiclib.dependency.api.annotation.Dependency;
 //$$ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //#endif
 
-@Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">0.4.8"))
+@Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">0.4.8 <0.5"))
 @Mixin(value = BlockRenderer.class, remap = false)
-public abstract class MixinBlockRenderer {
+public abstract class MixinBlockRenderer_0_4_9 {
+    @Dynamic
     @Shadow(remap = false)
     //#if MC > 11904 || MC < 11904
     public abstract boolean renderModel(BlockRenderContext ctx, ChunkModelBuilder buffers);
@@ -35,6 +33,7 @@ public abstract class MixinBlockRenderer {
     @Unique
     private final ThreadLocal<Boolean> ommc$renderTag = ThreadLocal.withInitial(() -> false);
 
+    @Dynamic
     @Inject(
             method = "renderModel",
             at = @At(
