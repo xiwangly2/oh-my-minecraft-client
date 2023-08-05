@@ -8,20 +8,24 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependencies;
 import top.hendrixshen.magiclib.dependency.api.annotation.Dependency;
 
-@Dependencies(and = @Dependency(value = "sodium", versionPredicate = ">0.4.8"))
+@Dependencies(and = @Dependency(value = "sodium", versionPredicate = "~0.5"))
 @Mixin(value = BlockRenderer.class, remap = false)
-public class MixinBlockRenderer {
-    @Redirect(method = "renderModel",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;getOffset(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;",
-                    ordinal = 0, remap = true))
-    private Vec3 blockModelNoOffset(BlockState blockState, BlockGetter world, BlockPos pos) {
-        return BlockModelNoOffsetUtil.blockModelNoOffset(blockState, world, pos);
+public class MixinBlockRenderer_0_5 {
+    @Dynamic
+    @Redirect(
+            method = "renderModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/state/BlockState;hasOffsetFunction()Z",
+                    ordinal = 0, remap = true
+            )
+    )
+    private boolean blockModelNoOffset(BlockState blockState) {
+        return !BlockModelNoOffsetUtil.shouldNoOffset(blockState);
     }
 }

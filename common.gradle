@@ -54,11 +54,11 @@ dependencies {
         exclude(group: "carpet", module: "fabric-carpet")
     }
 
-    if (mcVersion > 11902) {
-        modImplementation("com.github.CaffeineMC:sodium-fabric:${project.sodium_version}") {
-            transitive(false)
-        }
-    }
+//    if (mcVersion > 11902) {
+//        modImplementation("com.github.CaffeineMC:sodium-fabric:${project.sodium_version}") {
+//            transitive(false)
+//        }
+//    }
 
     // Misc
     runtimeOnly(project(path: ":fabricWrapper"))
@@ -69,6 +69,15 @@ version(project.parent.version)
 
 base {
     archivesBaseName("${project.mod_archives_base_name}-${project.minecraft_version}")
+}
+
+sourceSets {
+    dummy {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+
+    main.compileClasspath += dummy.output
 }
 
 loom {
