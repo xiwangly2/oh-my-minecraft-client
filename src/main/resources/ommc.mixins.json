@@ -49,7 +49,7 @@
     "feature.worldEaterMineHelper.fabric.MixinTerrainRenderContext",
     "feature.worldEaterMineHelper.optifine.MixinBlockRenderManager",
     "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_4_9",
-    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_5"
+    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_5",
     "feature.worldEaterMineHelper.sodium.MixinBlockRendererLegacy",
     "feature.worldEaterMineHelper.sodium.MixinTerrainRenderContext"
   ],
