@@ -128,7 +128,9 @@ public class HighlightWaypointUtil {
     }
 
     public static void postRespawn(@NotNull ClientboundRespawnPacket packet) {
-        //#if MC > 11502
+        //#if MC > 12001
+        //$$ ResourceKey<Level> newDimension = packet.commonPlayerSpawnInfo().dimension();
+        //#elseif MC > 11502
         ResourceKey<Level> newDimension = packet.getDimension();
         //#else
         //$$ DimensionType newDimension = packet.getDimension();
