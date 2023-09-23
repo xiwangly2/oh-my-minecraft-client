@@ -1,0 +1,6 @@
+# https://jitpack.io/docs/BUILDING/#custom-commands
+jdk:
+  - openjdk17
+install:
+  - ./gradlew preprocessResources
+  - ./gradlew build publishToMavenLocal
