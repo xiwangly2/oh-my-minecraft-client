@@ -42,6 +42,9 @@ jar {
             into("build/tmp/submods/META-INF/jars")
         }
     }
+
+    from("${rootDir}/LICENSE")
+    from("build/tmp/submods")
 }
 
 processResources {
@@ -64,9 +67,6 @@ processResources {
                 "mod_sources"        : project.mod_sources
         ])
     }
-
-    from("${rootDir}/LICENSE")
-    from("build/tmp/submods")
 
     doLast {
         ArrayList<?> mc_condition = []
