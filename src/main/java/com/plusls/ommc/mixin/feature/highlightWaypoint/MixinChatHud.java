@@ -2,9 +2,6 @@ package com.plusls.ommc.mixin.feature.highlightWaypoint;
 
 import com.plusls.ommc.config.Configs;
 import com.plusls.ommc.feature.highlithtWaypoint.HighlightWaypointUtil;
-//#if MC > 11802
-import net.minecraft.client.GuiMessageTag;
-//#endif
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,9 +9,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//#if MC > 11802
+import net.minecraft.client.GuiMessageTag;
+//#endif
+
 @Mixin(value = ChatComponent.class, priority = 999)
 public class MixinChatHud {
-
     @Inject(
             //#if MC > 11802
             method = "logChatMessage",
@@ -25,11 +25,15 @@ public class MixinChatHud {
                     value = "HEAD"
             )
     )
-    //#if MC > 11802
-    public void modifyMessage(Component message, GuiMessageTag guiMessageTag, CallbackInfo ci) {
-    //#else
-    //$$ public void modifyMessage(Component message, int messageId, CallbackInfo ci) {
-    //#endif
+    public void modifyMessage(
+            Component message,
+            //#if MC > 11802
+            GuiMessageTag guiMessageTag,
+            //#else
+            //$$ int messageId,
+            //#endif
+            CallbackInfo ci
+    ) {
         if (Configs.parseWaypointFromChat) {
             HighlightWaypointUtil.parseWaypointText(message);
         }

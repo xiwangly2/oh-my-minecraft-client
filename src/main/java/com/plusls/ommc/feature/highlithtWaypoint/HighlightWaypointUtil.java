@@ -1,13 +1,18 @@
 package com.plusls.ommc.feature.highlithtWaypoint;
 
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import com.plusls.ommc.OhMyMinecraftClientReference;
+import com.plusls.ommc.api.command.ClientBlockPosArgument;
 import com.plusls.ommc.config.Configs;
 import com.plusls.ommc.mixin.accessor.AccessorTextComponent;
 import com.plusls.ommc.mixin.accessor.AccessorTranslatableComponent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -33,10 +38,7 @@ import top.hendrixshen.magiclib.compat.minecraft.api.blaze3d.vertex.VertexFormat
 import top.hendrixshen.magiclib.compat.minecraft.api.network.chat.ComponentCompatApi;
 import top.hendrixshen.magiclib.compat.minecraft.api.network.chat.StyleCompatApi;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,15 +70,11 @@ import net.minecraft.resources.ResourceKey;
 
 // from fabric-voxel map
 public class HighlightWaypointUtil {
-
     private static final String HIGHLIGHT_COMMAND = "highlightWaypoint";
     @Nullable
     public static BlockPos highlightPos;
     public static long lastBeamTime = 0;
-    public static Pattern pattern1 = Pattern.compile("\\[(\\w+\\s*:\\s*[-#]?[^\\[\\]]+)(,\\s*\\w+\\s*:\\s*[-#]?[^\\[\\]]+)+]", Pattern.CASE_INSENSITIVE);
-    public static Pattern pattern2 = Pattern.compile("\\((\\w+\\s*:\\s*[-#]?[^\\[\\]]+)(,\\s*\\w+\\s*:\\s*[-#]?[^\\[\\]]+)+\\)", Pattern.CASE_INSENSITIVE);
-    public static Pattern pattern3 = Pattern.compile("\\[(-?\\d+)(,\\s*-?\\d+)(,\\s*-?\\d+)]", Pattern.CASE_INSENSITIVE);
-    public static Pattern pattern4 = Pattern.compile("\\((-?\\d+)(,\\s*-?\\d+)(,\\s*-?\\d+)\\)", Pattern.CASE_INSENSITIVE);
+    public static Pattern pattern = Pattern.compile("(?:(?:x\\s*:\\s*)?(?<x>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)(?:(?:(?:\\s*[,，]\\s*(?:y\\s*:\\s*)?)|(?:\\s+))(?<y>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)?(?:(?:(?:\\s*[,，]\\s*(?:z\\s*:\\s*)?)|(?:\\s+))(?<z>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)", Pattern.CASE_INSENSITIVE);
     @Nullable
     //#if MC > 11502
     public static ResourceKey<Level> currentWorld = null;
@@ -91,24 +89,8 @@ public class HighlightWaypointUtil {
         //$$ ClientCommandManager.DISPATCHER.register(
         //#endif
             ClientCommandManager.literal(HIGHLIGHT_COMMAND).then(
-                    ClientCommandManager.argument("x", IntegerArgumentType.integer()).then(
-                            ClientCommandManager.argument("y", IntegerArgumentType.integer()).then(
-                                    ClientCommandManager.argument("z", IntegerArgumentType.integer()).
-                                            executes(context -> {
-                                                int x = IntegerArgumentType.getInteger(context, "x");
-                                                int y = IntegerArgumentType.getInteger(context, "y");
-                                                int z = IntegerArgumentType.getInteger(context, "z");
-                                                BlockPos pos = new BlockPos(x, y, z);
-                                                if (pos.equals(highlightPos)) {
-                                                    lastBeamTime = System.currentTimeMillis() + 10 * 1000;
-                                                } else {
-                                                    highlightPos = new BlockPos(x, y, z);
-                                                    lastBeamTime = 0;
-                                                }
-                                                return 0;
-                                            })
-                            )
-                    )
+                    ClientCommandManager.argument("pos", ClientBlockPosArgument.blockPos())
+                            .executes(HighlightWaypointUtil::runCommand)
         //#if MC >= 11902
             )));
         //#else
@@ -125,6 +107,19 @@ public class HighlightWaypointUtil {
             currentWorld = null;
             highlightPos = null;
         });
+    }
+
+    private static int runCommand(CommandContext<FabricClientCommandSource> context) {
+        BlockPos pos = ClientBlockPosArgument.getBlockPos(context, "pos");
+
+        if (pos.equals(highlightPos)) {
+            lastBeamTime = System.currentTimeMillis() + 10 * 1000;
+        } else {
+            highlightPos = new BlockPos(pos);
+            lastBeamTime = 0;
+        }
+
+        return 0;
     }
 
     public static void postRespawn(@NotNull ClientboundRespawnPacket packet) {
@@ -155,199 +150,158 @@ public class HighlightWaypointUtil {
         currentWorld = newDimension;
     }
 
-    public static @NotNull ArrayList<Tuple<Integer, String>> getWaypointStrings(@NotNull String message) {
-        ArrayList<Tuple<Integer, String>> ret = new ArrayList<>();
-        if ((message.contains("[") && message.contains("]")) || (message.contains("(") && message.contains(")"))) {
-            getWaypointStringsByPattern(message, ret, pattern1);
-            getWaypointStringsByPattern(message, ret, pattern2);
-            getWaypointStringsByPattern(message, ret, pattern3);
-            getWaypointStringsByPattern(message, ret, pattern4);
+    private static @NotNull List<PositionStorage> getPositions(@NotNull String message) {
+        List<PositionStorage> ret = Lists.newArrayList();
+        Matcher matcher = HighlightWaypointUtil.pattern.matcher(message);
+
+        while (matcher.find()) {
+            ret.add(HighlightWaypointUtil.getPosition(matcher));
         }
-        ret.sort(Comparator.comparingInt(Tuple::getA));
+
+        ret.removeIf(Objects::isNull);
+        ret.sort(Comparator.comparingInt(PositionStorage::getMatcherStart));
         return ret;
     }
 
-    private static void getWaypointStringsByPattern(String message, ArrayList<Tuple<Integer, String>> ret, @NotNull Pattern pattern) {
-        Matcher matcher = pattern.matcher(message);
-        while (matcher.find()) {
-            String match = matcher.group();
-            BlockPos pos = parseWaypoint(match.substring(1, match.length() - 1));
-            if (pos == null) {
-                continue;
-            }
-            ret.add(new Tuple<>(matcher.start(), match));
-        }
-    }
-
-    @Nullable
-    private static BlockPos parseWaypoint(@NotNull String details) {
-        String[] pairs = details.split(",");
+    private static @Nullable PositionStorage getPosition(@NotNull Matcher matcher) {
         Integer x = null;
-        Integer z = null;
         int y = 64;
+        Integer z = null;
+        String xStr = matcher.group("x");
+        String yStr = matcher.group("y");
+        String zStr = matcher.group("z");
+
         try {
-            for (int i = 0; i < pairs.length; ++i) {
-                int splitIndex = pairs[i].indexOf(":");
-                String key, value;
-                if (splitIndex == -1 && pairs.length == 3) {
-                    if (i == 0) {
-                        key = "x";
-                    } else if (i == 1) {
-                        key = "y";
-                    } else {
-                        key = "z";
-                    }
-                    value = pairs[i];
-                } else {
-                    key = pairs[i].substring(0, splitIndex).toLowerCase().trim();
-                    value = pairs[i].substring(splitIndex + 1).trim();
-                }
+            x = xStr.contains(".") ? (int) Double.parseDouble(xStr) : Integer.parseInt(xStr);
+            z = zStr.contains(".") ? (int) Double.parseDouble(zStr) : Integer.parseInt(zStr);
 
-                switch (key) {
-                    case "x":
-                        x = Integer.parseInt(value.replace(" ", ""));
-                        break;
-                    case "y":
-                        y = Integer.parseInt(value.replace(" ", ""));
-                        break;
-                    case "z":
-                        z = Integer.parseInt(value.replace(" ", ""));
-                        break;
-                }
+            if (yStr != null) {
+                y = zStr.contains(".") ? (int) Double.parseDouble(yStr) : Integer.parseInt(yStr);
             }
-
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException e) {
+            OhMyMinecraftClientReference.getLogger().error("Failed to parse coordinate {}: {}", matcher.group(), e);
         }
+
         if (x == null || z == null) {
             return null;
         }
-        return new BlockPos(x, y, z);
+
+        return new PositionStorage(matcher.group(), new BlockPos(x, y, z), matcher.start());
     }
 
     public static void parseWaypointText(@NotNull Component chat) {
-        if (chat.getSiblings().size() > 0) {
-            for (Component text : chat.getSiblings()) {
-                parseWaypointText(text);
-            }
-        }
+        chat.getSiblings().forEach(HighlightWaypointUtil::parseWaypointText);
         //#if MC > 11802
         ComponentContents componentContents = chat.getContents();
-        if (componentContents instanceof TranslatableContents) {
-        //#else
-        //$$ if (chat instanceof TranslatableComponent) {
         //#endif
 
-            //#if MC > 11802
-            Object[] args = ((TranslatableContents) componentContents).getArgs();
-            //#else
-            //$$ Object[] args = ((TranslatableComponent) chat).getArgs();
-            //#endif
-            boolean updateTranslatableText = false;
-            for (int i = 0; i < args.length; ++i) {
-                if (args[i] instanceof Component) {
-                    parseWaypointText((Component) args[i]);
-                } else if (args[i] instanceof String) {
-                    Component text = ComponentCompatApi.literal((String) args[i]);
-                    if (updateWaypointsText(text)) {
-                        args[i] = text;
-                        updateTranslatableText = true;
-                    }
+        if (
+                //#if MC > 11802
+                !(componentContents instanceof TranslatableContents)
+                //#else
+                //$$ !(chat instanceof TranslatableComponent)
+                //#endif
+        ) {
+            HighlightWaypointUtil.updateWaypointsText(chat);
+            return;
+        }
+
+        //#if MC > 11802
+        Object[] args = ((TranslatableContents) componentContents).getArgs();
+        //#else
+        //$$ Object[] args = ((TranslatableComponent) chat).getArgs();
+        //#endif
+        boolean updateTranslatableText = false;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] instanceof Component) {
+                HighlightWaypointUtil.parseWaypointText((Component) args[i]);
+            } else if (args[i] instanceof String) {
+                Component text = ComponentCompatApi.literal((String) args[i]);
+
+                if (HighlightWaypointUtil.updateWaypointsText(text)) {
+                    args[i] = text;
+                    updateTranslatableText = true;
                 }
             }
-            if (updateTranslatableText) {
-                // refresh cache
-                //#if MC > 11802
-                ((AccessorTranslatableComponent) componentContents).setDecomposedWith(null);
-                //#elseif MC > 11502
-                //$$ ((AccessorTranslatableComponent) chat).setDecomposedWith(null);
-                //#else
-                //$$ ((AccessorTranslatableComponent) chat).setDecomposedLanguageTime(-1);
-                //#endif
-            }
         }
-        updateWaypointsText(chat);
-    }
 
+        if (updateTranslatableText) {
+            //#if MC > 11802
+            ((AccessorTranslatableComponent) componentContents).setDecomposedWith(null);
+            //#elseif MC > 11502
+            //$$ ((AccessorTranslatableComponent) chat).setDecomposedWith(null);
+            //#else
+            //$$ ((AccessorTranslatableComponent) chat).setDecomposedLanguageTime(-1);
+            //#endif
+        }
+
+        HighlightWaypointUtil.updateWaypointsText(chat);
+    }
 
     public static boolean updateWaypointsText(@NotNull Component chat) {
         //#if MC > 11802
         ComponentContents componentContents = chat.getContents();
-        if (!(componentContents instanceof LiteralContents)) {
-        //#else
-        //$$ if (!(chat instanceof TextComponent)) {
+
         //#endif
+        if (
+                //#if MC > 11802
+                !(componentContents instanceof LiteralContents)
+                //#else
+                //$$ !(chat instanceof TextComponent)
+                //#endif
+        ) {
             return false;
         }
+
         //#if MC > 11802
         LiteralContents literalChatText = (LiteralContents) componentContents;
         //#else
         //$$ TextComponent literalChatText = (TextComponent) chat;
         //#endif
-
         String message = ((AccessorTextComponent) (Object) literalChatText).getText();
-        ArrayList<Tuple<Integer, String>> waypointPairs = getWaypointStrings(message);
-        if (waypointPairs.size() > 0) {
-            Style style = chat.getStyle();
-            ClickEvent clickEvent = style.getClickEvent();
-            //#if MC > 11502
-            TextColor color = style.getColor();
-            //#else
-            //$$ ChatFormatting color = style.getColor();
-            //#endif
-            if (color == null) {
-                //#if MC > 11502
-                color = TextColor.fromLegacyFormat(ChatFormatting.GREEN);
-                //#else
-                //$$ color = ChatFormatting.GREEN;
-                //#endif
-            }
-            ArrayList<Component> texts = new ArrayList<>();
-            int prevIdx = 0;
-            for (Tuple<Integer, String> waypointPair : waypointPairs) {
-                String waypointString = waypointPair.getB();
-                int waypointIdx = waypointPair.getA();
-                Component prevText = ComponentCompatApi.literal(message.substring(prevIdx, waypointIdx)).withStyle(style);
-                texts.add(prevText);
+        List<PositionStorage> positions = HighlightWaypointUtil.getPositions(message);
 
-                //#if MC > 11502
-                MutableComponent clickableWaypoint = ComponentCompatApi.literal(waypointString);
-                //#else
-                //$$ BaseComponent clickableWaypoint = ComponentCompatApi.literal(waypointString);
-                //#endif
-                Style chatStyle = clickableWaypoint.getStyle();
-                BlockPos pos = Objects.requireNonNull(parseWaypoint(waypointString.substring(1, waypointString.length() - 1)));
-                Component hover = ComponentCompatApi.literal(OhMyMinecraftClientReference.translate("highlight_waypoint.tooltip"));
-                if (clickEvent == null || Configs.forceParseWaypointFromChat) {
-                    clickEvent = new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                            String.format("/%s %d %d %d", HIGHLIGHT_COMMAND, pos.getX(), pos.getY(), pos.getZ()));
-                }
-                chatStyle = chatStyle.withClickEvent(clickEvent)
-                        //#if MC > 11502
-                        .withColor(color)
-                        //#else
-                        //$$ .setColor(color)
-                        //#endif
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
-                clickableWaypoint.withStyle(chatStyle);
-                texts.add(clickableWaypoint);
-                prevIdx = waypointIdx + waypointString.length();
-            }
-            if (prevIdx < message.length() - 1) {
-                Component lastText = ComponentCompatApi.literal(message.substring(prevIdx)).withStyle(style);
-                texts.add(lastText);
-            }
-            for (int i = 0; i < texts.size(); ++i) {
-                chat.getSiblings().add(i, texts.get(i));
-            }
-            ((AccessorTextComponent) (Object) literalChatText).setText("");
-            //#if MC > 11502
-            ((MutableComponent) chat).withStyle(StyleCompatApi.empty());
-            //#else
-            //$$ ((BaseComponent) chat).withStyle(StyleCompatApi.empty());
-            //#endif
-            return true;
+        if (positions.isEmpty()) {
+            return false;
         }
-        return false;
+
+        Style originalStyle = chat.getStyle();
+        ClickEvent originalClickEvent = originalStyle.getClickEvent();
+        ArrayList<Component> texts = Lists.newArrayList();
+        int prevIdx = 0;
+
+        // Rebuild components.
+        for (PositionStorage position : positions) {
+            String waypointString = position.getText();
+            int waypointIdx = position.getMatcherStart();
+            texts.add(ComponentCompatApi.literal(message.substring(prevIdx, waypointIdx)).withStyle(originalStyle));
+            BlockPos pos = position.getPos();
+            texts.add(ComponentCompatApi.literal(waypointString)
+                    .withStyle(ChatFormatting.GREEN)
+                    .withStyle(ChatFormatting.UNDERLINE)
+                    .withStyle(style -> style.withClickEvent(originalClickEvent == null ||
+                            Configs.forceParseWaypointFromChat ? new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                            String.format("/%s %d %d %d", HIGHLIGHT_COMMAND, pos.getX(), pos.getY(), pos.getZ())) :
+                            originalClickEvent))
+                    .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                            ComponentCompatApi.literal(OhMyMinecraftClientReference.translate("highlight_waypoint.tooltip"))))));
+            prevIdx = waypointIdx + waypointString.length();
+        }
+
+        // Add tail if existed.
+        if (prevIdx < message.length()) {
+            texts.add(ComponentCompatApi.literal(message.substring(prevIdx)).withStyle(originalStyle));
+        }
+
+        texts.forEach(chat.getSiblings()::add);
+        ((AccessorTextComponent) (Object) literalChatText).setText("");
+        //#if MC > 11502
+        ((MutableComponent) chat).withStyle(StyleCompatApi.empty());
+        //#else
+        //$$ ((BaseComponent) chat).withStyle(StyleCompatApi.empty());
+        //#endif
+        return true;
     }
 
     private static double getDistanceToEntity(@NotNull Entity entity, @NotNull BlockPos pos) {
@@ -356,7 +310,6 @@ public class HighlightWaypointUtil {
         double dz = pos.getZ() + 0.5 - entity.getZ();
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
-
 
     private static boolean isPointedAt(@NotNull BlockPos pos, double distance, @NotNull Entity cameraEntity, float tickDelta) {
         Vec3 cameraPos = cameraEntity.getEyePosition(tickDelta);
@@ -612,5 +565,13 @@ public class HighlightWaypointUtil {
         //#if MC < 11904
         //$$ RenderSystem.enableTexture();
         //#endif
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class PositionStorage {
+        private final String text;
+        private final BlockPos pos;
+        private final int matcherStart;
     }
 }
