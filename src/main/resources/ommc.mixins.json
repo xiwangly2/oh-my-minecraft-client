@@ -6,6 +6,7 @@
   "plugin": "top.hendrixshen.magiclib.dependency.impl.MagicMixinPlugin",
   "client": [
     "accessor.AccessorAbstractContainerScreen",
+    "accessor.AccessorBlock",
     "accessor.AccessorBlockModel",
     "accessor.AccessorBlockRenderContext",
     "accessor.AccessorBlockStateBase",
@@ -48,15 +49,19 @@
     "feature.worldEaterMineHelper.fabric.MixinBlockRenderContext",
     "feature.worldEaterMineHelper.fabric.MixinTerrainRenderContext",
     "feature.worldEaterMineHelper.optifine.MixinBlockRenderManager",
+    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_4_11",
     "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_4_9",
     "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_5",
     "feature.worldEaterMineHelper.sodium.MixinBlockRendererLegacy",
-    "feature.worldEaterMineHelper.sodium.MixinTerrainRenderContext"
+    "feature.worldEaterMineHelper.sodium.MixinTerrainRenderContext",
+    "generic.sortInventory.MixinAbstractBannerBlockBannerBlock",
+    "generic.sortInventory.MixinBedBlock",
+    "generic.sortInventory.MixinShulkerBoxBlock",
+    "generic.sortInventory.MixinStainedGlassBlock",
+    "generic.sortInventory.MixinStainedGlassPaneBlock",
+    "generic.sortInventory.MixinWoolCarpetBlock"
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-    "feature.worldEaterMineHelper.sodium.MixinBlockRenderer_0_4_11"
-  ]
+  }
 }
