@@ -11,7 +11,9 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -155,12 +157,12 @@ public class SortInventoryUtil {
         return new Tuple<>(l, r);
     }
 
-    public static boolean sort() {
+    public static @Nullable Runnable sort() {
         Minecraft client = Minecraft.getInstance();
 
         if (!(client.screen instanceof AbstractContainerScreen<?>) ||
                 client.screen instanceof CreativeModeInventoryScreen) {
-            return false;
+            return null;
         }
 
         AbstractContainerScreen<?> handledScreen = (AbstractContainerScreen<?>) client.screen;
@@ -170,20 +172,20 @@ public class SortInventoryUtil {
         Slot mouseSlot = ((AccessorAbstractContainerScreen) handledScreen).invokeFindSlot(x, y);
 
         if (mouseSlot == null) {
-            return false;
+            return null;
         }
 
         LocalPlayer player = client.player;
 
         if (client.gameMode == null || player == null) {
-            return false;
+            return null;
         }
 
         AbstractContainerMenu screenHandler = player.containerMenu;
         Tuple<Integer, Integer> sortRange = SortInventoryUtil.getSortRange(screenHandler, mouseSlot);
 
         if (sortRange == null) {
-            return false;
+            return null;
         }
 
         List<ItemStack> itemStacks = Lists.newArrayList();
@@ -199,7 +201,11 @@ public class SortInventoryUtil {
         List<Tuple<Integer, Integer>> swapQueue = SortInventoryUtil.quickSort(itemStacks, sortRange.getA(),
                 sortRange.getB());
         SortInventoryUtil.doClick(player, screenHandler.containerId, client.gameMode, mergeQueue, swapQueue);
-        return !mergeQueue.isEmpty() || !swapQueue.isEmpty();
+        return (!mergeQueue.isEmpty() || !swapQueue.isEmpty()) ?
+                () -> Minecraft.getInstance().getSoundManager()
+                        .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F)) :
+                () -> Minecraft.getInstance().getSoundManager()
+                        .play(SimpleSoundInstance.forUI(SoundEvents.DISPENSER_FAIL, 1.0F));
     }
 
     public static void doClick(Player player, int syncId, @NotNull MultiPlayerGameMode interactionManager,

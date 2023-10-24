@@ -13,9 +13,7 @@ import fi.dy.masa.malilib.util.restrictions.UsageRestriction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -36,6 +34,7 @@ import top.hendrixshen.magiclib.util.InfoUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Configs {
     private static final List<String> OLD_WORLD_EATER_MINE_HELPER_WHITELIST = new ArrayList<>();
@@ -282,11 +281,7 @@ public class Configs {
         sortInventory.getKeybind().setSettings(KeybindSettings.GUI);
 
         sortInventory.getKeybind().setCallback((keyAction, iKeybind) -> {
-            if (SortInventoryUtil.sort()) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            } else {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.DISPENSER_FAIL, 1.0F));
-            }
+            Optional.ofNullable(SortInventoryUtil.sort()).ifPresent(Runnable::run);
             return false;
         });
 
