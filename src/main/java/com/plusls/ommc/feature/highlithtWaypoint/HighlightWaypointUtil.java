@@ -87,9 +87,7 @@ public class HighlightWaypointUtil {
         //#else
         //$$ ));
         //#endif
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            HighlightWaypointUtil.clearHighlightPos();
-        });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> HighlightWaypointUtil.clearHighlightPos());
     }
 
     private static int runCommand(CommandContext<FabricClientCommandSource> context) {
@@ -397,7 +395,7 @@ public class HighlightWaypointUtil {
         double baseZ = pos.getZ() - Mth.lerp(tickDelta, cameraEntity.zo, cameraEntity.getZ());
         // Max render distance
         //#if MC > 11802
-        double maxDistance = Minecraft.getInstance().options.renderDistance().get();
+        double maxDistance = Minecraft.getInstance().options.renderDistance().get() * 16;
         //#else
         //$$ double maxDistance = Option.RENDER_DISTANCE.get(mc.options) * 16;
         //#endif
@@ -530,7 +528,6 @@ public class HighlightWaypointUtil {
     public static void setHighlightPos(@NotNull BlockPos pos, boolean directHighlight) {
         Player player = Minecraft.getInstance().player;
 
-        // A over B nether
         if (player == null) {
             return;
         }
