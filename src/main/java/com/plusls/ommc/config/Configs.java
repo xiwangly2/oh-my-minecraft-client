@@ -245,8 +245,7 @@ public class Configs {
         });
 
         clearWaypoint.getKeybind().setCallback((keyAction, iKeybind) -> {
-            HighlightWaypointUtil.highlightPos = null;
-            HighlightWaypointUtil.lastBeamTime = 0;
+            HighlightWaypointUtil.clearHighlightPos();
             return false;
         });
 

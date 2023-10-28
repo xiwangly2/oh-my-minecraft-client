@@ -9,6 +9,7 @@ import com.plusls.ommc.api.command.ClientBlockPosArgument;
 import com.plusls.ommc.config.Configs;
 import com.plusls.ommc.mixin.accessor.AccessorTextComponent;
 import com.plusls.ommc.mixin.accessor.AccessorTranslatableComponent;
+import com.plusls.ommc.util.Tuple;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
@@ -21,11 +22,10 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
-import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -42,13 +42,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//#if MC >= 11903
+//#if MC > 11902
 import com.mojang.math.Axis;
 //#else
 //$$ import top.hendrixshen.magiclib.compat.minecraft.api.math.Vector3fCompatApi;
 //#endif
 
-//#if MC >= 11902
+//#if MC > 11901
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 //#endif
 
@@ -58,32 +58,23 @@ import net.minecraft.network.chat.contents.*;
 //$$ import net.minecraft.client.Option;
 //#endif
 
-//#if MC <= 11605
+//#if MC < 11700
 //$$ import net.minecraft.client.renderer.texture.TextureAtlas;
 //#endif
 
-//#if MC > 11502
-import net.minecraft.resources.ResourceKey;
-//#else
+//#if MC < 11600
 //$$ import net.minecraft.world.level.dimension.DimensionType;
 //#endif
 
-// from fabric-voxel map
 public class HighlightWaypointUtil {
     private static final String HIGHLIGHT_COMMAND = "highlightWaypoint";
-    @Nullable
-    public static BlockPos highlightPos;
+    private static final Tuple<BlockPos, BlockPos> highlightPos = new Tuple<>(null, null);
+
     public static long lastBeamTime = 0;
     public static Pattern pattern = Pattern.compile("(?:(?:x\\s*:\\s*)?(?<x>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)(?:(?:(?:\\s*[,，]\\s*(?:y\\s*:\\s*)?)|(?:\\s+))(?<y>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)?(?:(?:(?:\\s*[,，]\\s*(?:z\\s*:\\s*)?)|(?:\\s+))(?<z>(?:[+-]?\\d+)(?:\\.\\d+)?)(?:[df])?)", Pattern.CASE_INSENSITIVE);
-    @Nullable
-    //#if MC > 11502
-    public static ResourceKey<Level> currentWorld = null;
-    //#else
-    //$$ public static DimensionType currentWorld = null;
-    //#endif
 
     public static void init() {
-        //#if MC >= 11902
+        //#if MC > 11901
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(
         //#else
         //$$ ClientCommandManager.DISPATCHER.register(
@@ -91,79 +82,37 @@ public class HighlightWaypointUtil {
             ClientCommandManager.literal(HIGHLIGHT_COMMAND).then(
                     ClientCommandManager.argument("pos", ClientBlockPosArgument.blockPos())
                             .executes(HighlightWaypointUtil::runCommand)
-        //#if MC >= 11902
+        //#if MC > 11901
             )));
         //#else
         //$$ ));
         //#endif
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) ->
-                        //#if MC > 11502
-                        currentWorld = Objects.requireNonNull(client.level).dimension()
-                        //#else
-                        //$$ currentWorld = Objects.requireNonNull(client.level).getDimension().getType()
-                        //#endif
-        );
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            currentWorld = null;
-            highlightPos = null;
+            HighlightWaypointUtil.clearHighlightPos();
         });
     }
 
     private static int runCommand(CommandContext<FabricClientCommandSource> context) {
         BlockPos pos = ClientBlockPosArgument.getBlockPos(context, "pos");
-
-        if (pos.equals(highlightPos)) {
-            lastBeamTime = System.currentTimeMillis() + 10 * 1000;
-        } else {
-            highlightPos = new BlockPos(pos);
-            lastBeamTime = 0;
-        }
+        HighlightWaypointUtil.setHighlightPos(pos, false);
 
         return 0;
     }
 
-    public static void postRespawn(@NotNull ClientboundRespawnPacket packet) {
-        //#if MC > 12001
-        //$$ ResourceKey<Level> newDimension = packet.commonPlayerSpawnInfo().dimension();
-        //#elseif MC > 11502
-        ResourceKey<Level> newDimension = packet.getDimension();
-        //#else
-        //$$ DimensionType newDimension = packet.getDimension();
-        //#endif
-        if (highlightPos != null && currentWorld != newDimension) {
-            //#if MC > 11502
-            if (currentWorld == Level.OVERWORLD && newDimension == Level.NETHER) {
-            //#else
-            //$$ if (currentWorld == DimensionType.OVERWORLD && newDimension == DimensionType.NETHER) {
-            //#endif
-                highlightPos = new BlockPos(highlightPos.getX() / 8, highlightPos.getY(), highlightPos.getZ() / 8);
-            //#if MC > 11502
-            } else if (currentWorld == Level.NETHER && newDimension == Level.OVERWORLD) {
-            //#else
-            //$$ } else if (currentWorld == DimensionType.NETHER && newDimension == DimensionType.OVERWORLD) {
-            //#endif
-                highlightPos = new BlockPos(highlightPos.getX() * 8, highlightPos.getY(), highlightPos.getZ() * 8);
-            } else {
-                highlightPos = null;
-            }
-        }
-        currentWorld = newDimension;
-    }
-
-    private static @NotNull List<PositionStorage> getPositions(@NotNull String message) {
-        List<PositionStorage> ret = Lists.newArrayList();
+    private static @NotNull List<ParseResult> parsePositions(@NotNull String message) {
+        List<ParseResult> ret = Lists.newArrayList();
         Matcher matcher = HighlightWaypointUtil.pattern.matcher(message);
 
         while (matcher.find()) {
-            ret.add(HighlightWaypointUtil.getPosition(matcher));
+            ret.add(HighlightWaypointUtil.parsePosition(matcher));
         }
 
         ret.removeIf(Objects::isNull);
-        ret.sort(Comparator.comparingInt(PositionStorage::getMatcherStart));
+        ret.sort(Comparator.comparingInt(ParseResult::getMatcherStart));
         return ret;
     }
 
-    private static @Nullable PositionStorage getPosition(@NotNull Matcher matcher) {
+    private static @Nullable ParseResult parsePosition(@NotNull Matcher matcher) {
         Integer x = null;
         int y = 64;
         Integer z = null;
@@ -186,11 +135,11 @@ public class HighlightWaypointUtil {
             return null;
         }
 
-        return new PositionStorage(matcher.group(), new BlockPos(x, y, z), matcher.start());
+        return new ParseResult(matcher.group(), new BlockPos(x, y, z), matcher.start());
     }
 
-    public static void parseWaypointText(@NotNull Component chat) {
-        chat.getSiblings().forEach(HighlightWaypointUtil::parseWaypointText);
+    public static void parseMessage(@NotNull Component chat) {
+        chat.getSiblings().forEach(HighlightWaypointUtil::parseMessage);
         //#if MC > 11802
         ComponentContents componentContents = chat.getContents();
         //#endif
@@ -202,7 +151,7 @@ public class HighlightWaypointUtil {
                 //$$ !(chat instanceof TranslatableComponent)
                 //#endif
         ) {
-            HighlightWaypointUtil.updateWaypointsText(chat);
+            HighlightWaypointUtil.updateMessage(chat);
             return;
         }
 
@@ -215,11 +164,11 @@ public class HighlightWaypointUtil {
 
         for (int i = 0; i < args.length; i++) {
             if (args[i] instanceof Component) {
-                HighlightWaypointUtil.parseWaypointText((Component) args[i]);
+                HighlightWaypointUtil.parseMessage((Component) args[i]);
             } else if (args[i] instanceof String) {
                 Component text = ComponentCompatApi.literal((String) args[i]);
 
-                if (HighlightWaypointUtil.updateWaypointsText(text)) {
+                if (HighlightWaypointUtil.updateMessage(text)) {
                     args[i] = text;
                     updateTranslatableText = true;
                 }
@@ -236,10 +185,10 @@ public class HighlightWaypointUtil {
             //#endif
         }
 
-        HighlightWaypointUtil.updateWaypointsText(chat);
+        HighlightWaypointUtil.updateMessage(chat);
     }
 
-    public static boolean updateWaypointsText(@NotNull Component chat) {
+    public static boolean updateMessage(@NotNull Component chat) {
         //#if MC > 11802
         ComponentContents componentContents = chat.getContents();
 
@@ -260,7 +209,7 @@ public class HighlightWaypointUtil {
         //$$ TextComponent literalChatText = (TextComponent) chat;
         //#endif
         String message = ((AccessorTextComponent) (Object) literalChatText).getText();
-        List<PositionStorage> positions = HighlightWaypointUtil.getPositions(message);
+        List<ParseResult> positions = HighlightWaypointUtil.parsePositions(message);
 
         if (positions.isEmpty()) {
             return false;
@@ -272,7 +221,7 @@ public class HighlightWaypointUtil {
         int prevIdx = 0;
 
         // Rebuild components.
-        for (PositionStorage position : positions) {
+        for (ParseResult position : positions) {
             String waypointString = position.getText();
             int waypointIdx = position.getMatcherStart();
             texts.add(ComponentCompatApi.literal(message.substring(prevIdx, waypointIdx)).withStyle(originalStyle));
@@ -325,25 +274,35 @@ public class HighlightWaypointUtil {
     }
 
     public static void drawWaypoint(PoseStack matrixStack, float tickDelta) {
-        // 多线程可能会出锅？
-        BlockPos highlightPos = HighlightWaypointUtil.highlightPos;
-        if (highlightPos != null) {
-            Minecraft mc = Minecraft.getInstance();
-            Entity cameraEntity = Objects.requireNonNull(mc.getCameraEntity());
-            // 半透明
-            RenderSystem.enableBlend();
-            // 允许透过方块渲染
-            RenderSystem.disableDepthTest();
-            RenderSystem.depthMask(false);
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
 
-            double distance = getDistanceToEntity(cameraEntity, highlightPos);
-
-            renderLabel(matrixStack, distance, cameraEntity, tickDelta, isPointedAt(highlightPos, distance, cameraEntity, tickDelta), highlightPos);
-
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthMask(true);
-            RenderSystem.disableBlend();
+        if (player == null) {
+            return;
         }
+
+        BlockPos pos = HighlightWaypointUtil.inNether(player) ?
+                HighlightWaypointUtil.highlightPos.getB() : HighlightWaypointUtil.highlightPos.getA();
+
+        if (pos == null) {
+            return;
+        }
+
+        Entity cameraEntity = mc.getCameraEntity();
+
+        if (cameraEntity == null) {
+            return;
+        }
+
+        RenderSystem.enableBlend();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        double distance = getDistanceToEntity(cameraEntity, pos);
+        HighlightWaypointUtil.renderLabel(matrixStack, distance, cameraEntity, tickDelta,
+                HighlightWaypointUtil.isPointedAt(pos, distance, cameraEntity, tickDelta), pos);
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
+        RenderSystem.disableBlend();
     }
 
     // code from BeaconBlockEntityRenderer
@@ -432,26 +391,27 @@ public class HighlightWaypointUtil {
 
     public static void renderLabel(PoseStack matrixStack, double distance, @NotNull Entity cameraEntity, float tickDelta, boolean isPointedAt, @NotNull BlockPos pos) {
         Minecraft mc = Minecraft.getInstance();
-
         String name = String.format("x:%d, y:%d, z:%d (%dm)", pos.getX(), pos.getY(), pos.getZ(), (int) distance);
         double baseX = pos.getX() - Mth.lerp(tickDelta, cameraEntity.xo, cameraEntity.getX());
         double baseY = pos.getY() - Mth.lerp(tickDelta, cameraEntity.yo, cameraEntity.getY()) - 1.5;
         double baseZ = pos.getZ() - Mth.lerp(tickDelta, cameraEntity.zo, cameraEntity.getZ());
-        // 当前渲染的最大距离
+        // Max render distance
         //#if MC > 11802
         double maxDistance = Minecraft.getInstance().options.renderDistance().get();
         //#else
         //$$ double maxDistance = Option.RENDER_DISTANCE.get(mc.options) * 16;
         //#endif
         double adjustedDistance = distance;
+
         if (distance > maxDistance) {
             baseX = baseX / distance * maxDistance;
             baseY = baseY / distance * maxDistance;
             baseZ = baseZ / distance * maxDistance;
             adjustedDistance = maxDistance;
         }
+
         // 根据调节后的距离决定绘制的大小
-        float scale = (float) (adjustedDistance * 0.1f + 1.0f) * 0.0266f;
+        float scale = (float) (adjustedDistance * 0.1f + 1.0f) * 0.0265f;
         matrixStack.pushPose();
         // 当前绘制位置是以玩家为中心的，转移到目的地
         matrixStack.translate(baseX, baseY, baseZ);
@@ -567,9 +527,74 @@ public class HighlightWaypointUtil {
         //#endif
     }
 
+    public static void setHighlightPos(@NotNull BlockPos pos, boolean directHighlight) {
+        Player player = Minecraft.getInstance().player;
+
+        // A over B nether
+        if (player == null) {
+            return;
+        }
+
+        boolean posChanged;
+
+        if (HighlightWaypointUtil.inOverworld(player)) {
+            posChanged = HighlightWaypointUtil.setHighlightBlockPos(
+                    pos, new BlockPos(pos.getX() / 8, pos.getY(), pos.getZ() / 8));
+        } else if (HighlightWaypointUtil.inNether(player)) {
+            posChanged = HighlightWaypointUtil.setHighlightBlockPos(
+                    new BlockPos(pos.getX() * 8, pos.getY(), pos.getZ() * 8), pos);
+        } else {
+            posChanged = HighlightWaypointUtil.setHighlightBlockPos(pos, pos);
+        }
+
+        if (directHighlight || !posChanged) {
+            HighlightWaypointUtil.lastBeamTime = System.currentTimeMillis() + 10 * 1000;
+        }
+    }
+
+    public static BlockPos getHighlightPos(Player player) {
+        return HighlightWaypointUtil.inNether(player) ?
+                HighlightWaypointUtil.highlightPos.getB() : HighlightWaypointUtil.highlightPos.getA();
+    }
+
+    private static boolean setHighlightBlockPos(@NotNull BlockPos overworldPos, @NotNull BlockPos netherWorldPos) {
+        if (overworldPos.equals(HighlightWaypointUtil.highlightPos.getA()) &&
+                netherWorldPos.equals(HighlightWaypointUtil.highlightPos.getB())) {
+            return false;
+        }
+
+        HighlightWaypointUtil.highlightPos.setA(overworldPos);
+        HighlightWaypointUtil.highlightPos.setB(netherWorldPos);
+        return true;
+    }
+
+    public static void clearHighlightPos() {
+        HighlightWaypointUtil.highlightPos.setA(null);
+        HighlightWaypointUtil.highlightPos.setB(null);
+        HighlightWaypointUtil.lastBeamTime = 0;
+    }
+
+    private static boolean inOverworld(@NotNull Player player) {
+        return
+                //#if MC > 11502
+                player.getLevelCompat().dimension() == Level.OVERWORLD;
+                //#else
+                //$$ player.getLevelCompat().getDimension().getType() == DimensionType.OVERWORLD;
+                //#endif
+    }
+
+    private static boolean inNether(@NotNull Player player) {
+        return
+                //#if MC > 11502
+                player.getLevelCompat().dimension() == Level.NETHER;
+                //#else
+                //$$ player.getLevelCompat().getDimension().getType() == DimensionType.NETHER;
+                //#endif
+    }
+
     @Getter
     @AllArgsConstructor
-    public static class PositionStorage {
+    public static class ParseResult {
         private final String text;
         private final BlockPos pos;
         private final int matcherStart;

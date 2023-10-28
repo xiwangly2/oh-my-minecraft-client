@@ -35,7 +35,7 @@ public class MixinChatHud {
             CallbackInfo ci
     ) {
         if (Configs.parseWaypointFromChat) {
-            HighlightWaypointUtil.parseWaypointText(message);
+            HighlightWaypointUtil.parseMessage(message);
         }
     }
 }
