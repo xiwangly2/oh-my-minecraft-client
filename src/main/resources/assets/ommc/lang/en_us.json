@@ -15,10 +15,12 @@
   "ommc.config.generic.dontClearChatHistory.comment": "Don't clear chat history and input history.",
   "ommc.config.generic.clearWaypoint.name": "clearWaypoint",
   "ommc.config.generic.clearWaypoint.comment": "A hotkey to clear highlight waypoint.",
-  "ommc.config.generic.parseWaypointFromChat.name": "parseWaypointFromChat",
-  "ommc.config.generic.parseWaypointFromChat.comment": "Parse waypoint from chat.",
   "ommc.config.generic.forceParseWaypointFromChat.name": "forceParseWaypointFromChat",
   "ommc.config.generic.forceParseWaypointFromChat.comment": "Force parse waypoint from chat (such it will override the clickevent of rtext).",
+  "ommc.config.generic.highlightBeamTime.name": "highlightBeamTime",
+  "ommc.config.generic.highlightBeamTime.comment": "Highlighted waypoint beam display time.",
+  "ommc.config.generic.parseWaypointFromChat.name": "parseWaypointFromChat",
+  "ommc.config.generic.parseWaypointFromChat.comment": "Parse waypoint from chat.",
   "ommc.config.generic.sendLookingAtBlockPos.name": "sendLookingAtPos",
   "ommc.config.generic.sendLookingAtBlockPos.comment": "A hotkey to send looking at pos.",
   "ommc.config.generic.sortInventory.name": "sortInventory",
@@ -89,5 +91,5 @@
   "ommc.config.advanced_integrated_server.flight.comment": "Integrated server enable flight.",
   "ommc.config.advanced_integrated_server.port.name": "port",
   "ommc.config.advanced_integrated_server.port.comment": "Integrated server lan port, 0 to use default port.",
-  "ommc.highlight_waypoint.tooltip": "Click to highlight waypoint."
+  "ommc.highlight_waypoint.tooltip": "Click to highlight waypoint. Click again to display the beam."
 }

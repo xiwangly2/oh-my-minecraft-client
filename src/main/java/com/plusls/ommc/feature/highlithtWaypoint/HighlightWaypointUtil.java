@@ -545,8 +545,13 @@ public class HighlightWaypointUtil {
         }
 
         if (directHighlight || !posChanged) {
-            HighlightWaypointUtil.lastBeamTime = System.currentTimeMillis() + 10 * 1000;
+            HighlightWaypointUtil.lastBeamTime = System.currentTimeMillis() + Configs.highlightBeamTime * 1000L;
         }
+    }
+
+    public static BlockPos getHighlightPos() {
+        Player player = Minecraft.getInstance().player;
+        return player == null ? BlockPos.ZERO : HighlightWaypointUtil.getHighlightPos(player);
     }
 
     public static BlockPos getHighlightPos(Player player) {

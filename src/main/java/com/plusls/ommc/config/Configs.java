@@ -80,6 +80,10 @@ public class Configs {
     @Config(category = ConfigCategory.GENERIC)
     public static boolean forceParseWaypointFromChat = false;
 
+    @Numeric(minValue = 0, maxValue = Integer.MAX_VALUE)
+    @Config(category = ConfigCategory.GENERIC)
+    public static int highlightBeamTime = 10;
+
     @Hotkey(hotkey = "O,C")
     @Config(category = ConfigCategory.GENERIC)
     public static ConfigHotkey openConfigGui;
@@ -104,7 +108,6 @@ public class Configs {
     public static IConfigOptionListEntry sortInventoryShulkerBoxLast = SortInventoryShulkerBoxLastType.AUTO;
 
     // FEATURE_TOGGLE
-
     @Hotkey
     @Config(category = ConfigCategory.FEATURE_TOGGLE)
     public static boolean autoSwitchElytra = false;
@@ -175,7 +178,6 @@ public class Configs {
 
 
     // LISTS
-
     @Config(category = ConfigCategory.LISTS)
     public static ArrayList<String> blockModelNoOffsetBlacklist = new ArrayList<>();
 

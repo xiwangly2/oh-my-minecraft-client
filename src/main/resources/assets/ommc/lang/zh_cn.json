@@ -15,10 +15,12 @@
   "ommc.config.generic.dontClearChatHistory.comment": "不清空聊天历史记录，以及输入的历史记录",
   "ommc.config.generic.clearWaypoint.name": "取消高亮坐标点",
   "ommc.config.generic.clearWaypoint.comment": "取消高亮坐标点的快捷键",
-  "ommc.config.generic.parseWaypointFromChat.name": "从聊天中解析路径点",
-  "ommc.config.generic.parseWaypointFromChat.comment": "从聊天中解析路径点",
   "ommc.config.generic.forceParseWaypointFromChat.name": "强制从聊天中解析路径点",
   "ommc.config.generic.forceParseWaypointFromChat.comment": "强制从聊天中解析路径点，就算该信息中存在 click event 也会将其覆盖",
+  "ommc.config.generic.highlightBeamTime.name": "高亮光柱时间",
+  "ommc.config.generic.highlightBeamTime.comment": "高亮坐标点光束展示时间.",
+  "ommc.config.generic.parseWaypointFromChat.name": "从聊天中解析路径点",
+  "ommc.config.generic.parseWaypointFromChat.comment": "从聊天中解析路径点",
   "ommc.config.generic.sendLookingAtBlockPos.name": "发送当前注视的方块的坐标",
   "ommc.config.generic.sendLookingAtBlockPos.comment": "发送当前注视的方块的坐标",
   "ommc.config.generic.sortInventory.name": "整理仓库",
@@ -89,5 +91,5 @@
   "ommc.config.advanced_integrated_server.flight.comment": "本地服务器允许飞行",
   "ommc.config.advanced_integrated_server.port.name": "局域网端口",
   "ommc.config.advanced_integrated_server.port.comment": "本地服务器的局域网端口，0 表示使用随机端口",
-  "ommc.highlight_waypoint.tooltip": "点击以高亮坐标点"
+  "ommc.highlight_waypoint.tooltip": "点击以高亮坐标点。再次点击展示光束。"
 }
