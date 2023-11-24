@@ -432,19 +432,21 @@ public class SortInventoryUtil {
                         SortInventoryUtil.bothContains("terracotta", ida, idb) ||
                         SortInventoryUtil.bothContains("concrete", ida, idb) ||
                         SortInventoryUtil.bothContains("candle", ida, idb)) {
-                    return SortInventoryUtil.MAP_COLOR_MAPPING.get(
+                    return SortInventoryUtil.MAP_COLOR_MAPPING.getOrDefault(
                             //#if MC > 11502
-                            blockA.defaultMapColor()
+                            blockA.defaultMapColor(),
                             //#else
-                            //$$ ((AccessorBlock) blockA).getMaterialColor()
+                            //$$ ((AccessorBlock) blockA).getMaterialColor(),
                             //#endif
+                            0
                     ) -
-                            SortInventoryUtil.MAP_COLOR_MAPPING.get(
+                            SortInventoryUtil.MAP_COLOR_MAPPING.getOrDefault(
                                     //#if MC > 11502
-                                    blockB.defaultMapColor()
+                                    blockB.defaultMapColor(),
                                     //#else
-                                    //$$ ((AccessorBlock) blockB).getMaterialColor()
+                                    //$$ ((AccessorBlock) blockB).getMaterialColor(),
                                     //#endif
+                                    0
                             );
                 }
             }
