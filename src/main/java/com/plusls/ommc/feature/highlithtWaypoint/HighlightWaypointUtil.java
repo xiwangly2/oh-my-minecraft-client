@@ -193,9 +193,9 @@ public class HighlightWaypointUtil {
         //#endif
         if (
                 //#if MC > 12002
-                //$$ !(componentContents instanceof PlainTextContents.LiteralContents)
+                !(componentContents instanceof PlainTextContents.LiteralContents)
                 //#elseif MC > 11802
-                !(componentContents instanceof LiteralContents)
+                //$$ !(componentContents instanceof LiteralContents)
                 //#else
                 //$$ !(chat instanceof TextComponent)
                 //#endif
@@ -204,9 +204,9 @@ public class HighlightWaypointUtil {
         }
 
         //#if MC > 12002
-        //$$ PlainTextContents.LiteralContents literalChatText = (PlainTextContents.LiteralContents) componentContents;
+        PlainTextContents.LiteralContents literalChatText = (PlainTextContents.LiteralContents) componentContents;
         //#elseif MC > 11802
-        LiteralContents literalChatText = (LiteralContents) componentContents;
+        //$$ LiteralContents literalChatText = (LiteralContents) componentContents;
         //#else
         //$$ TextComponent literalChatText = (TextComponent) chat;
         //#endif

@@ -313,7 +313,7 @@ We have also provided some optional resource packs for this purpose.
 
 ### 支持
 
-当前主开发版本：1.20.1
+当前主开发版本：1.20.4
 
 并且使用 `预处理` 来兼容各版本。
 
