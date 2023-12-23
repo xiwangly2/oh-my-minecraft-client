@@ -328,7 +328,8 @@ We have also provided some optional resource packs for this purpose.
 - Minecraft 1.19.3 (即将终止支持)
 - Minecraft 1.19.4
 - Minecraft 1.20.1 (即将终止支持)
-- Minecraft 1.20.2
+- Minecraft 1.20.2 (即将终止支持)
+- Minecraft 1.20.4
 
 ### 混淆映射表
 
