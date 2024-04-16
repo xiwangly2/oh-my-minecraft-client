@@ -8,7 +8,7 @@ jobs:
         # Use these Java versions
         java: [ 17 ]
         # and run on both Linux and Windows
-        os: [ ubuntu-20.04 ]
+        os: [ ubuntu-22.04 ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
@@ -35,10 +35,11 @@ jobs:
         if: ${{ runner.os == 'Linux' && matrix.java == '17' }}
         run: |
           output="$(find fabricWrapper/build/libs/ ! -name "*-dev.jar" ! -name "*-sources.jar" -type f -printf "%f\n")"
-          echo "::set-output name=jarname::$output"
+          echo "jarname=$output" >> $GITHUB_ENV
+          echo "Debug: jarname=$output"
       - name: capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '17' }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.findjar.outputs.jarname }}
-          path: fabricWrapper/build/libs/${{ steps.findjar.outputs.jarname }}
+          name: ${{ env.jarname }}
+          path: fabricWrapper/build/libs/${{ env.jarname }}
